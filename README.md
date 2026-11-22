@@ -4,86 +4,89 @@
 
 # The Last Folder
 
-**Open and Save As dialogs that remember where you were.**
+**The Open and Save As dialog finally knows where you were headed.**
 
-The Last Folder is a tiny background utility for Windows. When you have just been working in a folder in
-**Windows Explorer** or **Total Commander** and then go back to an Open or Save As dialog, the dialog jumps to that
-same folder. No typing, no hotkey, no window.
+You know the routine. You are deep in a folder in Explorer or Total Commander, you alt-tab to some other program, hit
+*File > Open*, and the dialog cheerfully offers you whatever directory that program last touched in 2019. Then comes the
+click-through: drive, folder, folder, folder, pause to question your life choices, folder.
 
-## What it is good for
+The Last Folder is a small background utility that closes that loop. Use a file manager, return to the dialog, and the
+dialog is already sitting in the folder you just left. No hotkey, no overlay, no window. Take the path of least
+resistance, quite literally.
 
-You are in a folder in your file manager, switch to another program, and choose *File > Open* or *Save As*. The dialog
-opens wherever that program last happened to be, so you spend the next few seconds clicking your way back to the folder
-you were just in.
+## How it feels in use
 
-With The Last Folder you do this instead:
+1. The dialog opens as it always has, in the folder the program normally picks.
+2. You switch to Explorer or Total Commander and go where you want to be.
+3. You switch back to the dialog. It jumps to that folder.
+4. You open or save the file like you would have anyway.
 
-1. The dialog opens as usual, in the folder the program normally uses.
-2. Switch to Explorer or Total Commander and go to the folder you want.
-3. Switch back to the dialog. It jumps to that folder.
-4. Open or save your file as normal.
+It only acts if you have actually used a file manager since the dialog appeared. If you have not, the dialog is left
+alone. It does not second-guess you, and it does not redecorate while you are still thinking.
 
-It only acts when you have actually used a file manager since the dialog opened. If you do not, the dialog is left
-alone.
+## Small on purpose
 
-## Small by design
+There is no UI to speak of. The tray icon is the whole interface, and the whole menu is **About** and **Exit**. A
+utility that needs a settings page to explain what it does has already lost the argument.
 
-- **No user interface.** The only thing you see is a tray icon. Right-click it for **About** and **Exit**. There is no
-  main window, no overlay, no search box and no settings.
-- **Tiny.** One portable `thelastfolder.exe` of about 150 KB. No installer, no runtime to install, no dependencies
-  beyond the Windows system libraries.
-- **Light on resources.** It is event-driven and does nothing while idle. Measured once on Windows 10: 0 ms of CPU over
-  15 seconds and roughly 8 MB of memory, with a single thread.
-- **No configuration.** No settings, no config files, no database, no indexing, no logging, no telemetry and no network
-  access.
-- **Native.** C++20 and the plain Win32 API, built with MSVC. No frameworks.
+- **One portable exe, roughly 150 KB.** No installer, no runtime to hunt down, nothing beyond the Windows system
+  libraries. You can carry it on a USB stick, in your pocket, or in a small bird's beak.
+- **Idle means idle.** It is event-driven, so it does nothing until Windows tells it something happened. One measurement on
+  Windows 10 showed 0 ms of CPU over 15 seconds and about 8 MB of memory, on a single thread.
+- **Nothing to configure, and nothing to leak.** No settings, config files, database, indexer, logging, telemetry or network
+  access. It cannot phone home because it has never learned the number.
+- **Native.** C++20 and plain Win32, built with MSVC. No framework was harmed.
 
-## How it works
+## Under the hood
 
-- **Following your file manager.** A Windows event hook reports which window you bring to the front. When that window
-  is Explorer or Total Commander, The Last Folder notes it, and when you leave it, it remembers the folder it was
-  showing. Explorer is read through the Windows Shell's documented window list. Total Commander is read from the path
-  bar of the panel you last used. Nothing is ever sent to either program, and the clipboard is not touched.
-- **Recognising a dialog.** A standard Open or Save As dialog of another program is recognised by its structure (the
-  dialog window class plus its filename box and default button), not by its title, so it works in any language.
-- **Jumping.** The existing dialog is navigated, not replaced. The folder path is put into the dialog's filename box and
-  the default button is pressed, which is how a dialog is told to go to a folder. In Save As the file name that was
-  already there is put back afterwards, and the move is checked before it counts as done.
-- **Safe by default.** No code is injected into other programs and nothing is patched or hooked inside them. If the
-  folder is unknown or cannot be read, nothing happens: it never guesses.
+- **Tracking your file manager.** A WinEvent hook reports every change of the foreground window. When Explorer or
+  Total Commander comes to the front it is noted, and when you leave it, the folder it was showing is remembered.
+  Explorer is read through the Shell's documented window list (`IShellWindows`). For Total Commander it reads the path
+  bar of the panel that last had focus. Both are strictly read-only: nothing is sent to either program, and your
+  clipboard is left alone.
+- **Recognising a dialog.** A standard Open or Save As dialog is identified by structure (the dialog window class, a
+  filename box with a known control id, and a default button), never by title. That keeps it language-independent.
+- **The jump.** The existing dialog is navigated, not replaced. The folder path goes into the filename box and the
+  default button is pressed, which is the dialog's own way of being told to go somewhere. The box is filled by selecting
+  all and replacing the text rather than with a plain `WM_SETTEXT`, because a Save As dialog that already holds a name
+  ignores the latter and offers to save the old file instead. The existing file name is restored afterwards, and the
+  move is verified before it counts.
+- **Polite by construction.** No code injection, no patching, no hooks inside other processes. If the folder is
+  unknown, unreadable or not a local drive-letter path, it does nothing. It would rather stay put than guess wrong.
 
-## Current status
+## Status
 
-A working prototype (version 0.3). It has been tried by hand and works, and it has been tested automatically against
-test dialogs. Tested on Windows 10 x64 only.
+A working prototype, version 0.3. Tried by hand and automatically tested against test dialogs, on Windows 10 x64 only.
+Expect rough edges, and treat anything not listed below as unverified rather than supported.
 
 Known limits:
 
-- Local drive-letter folders only. Network paths, virtual folders such as *This PC*, and archives are skipped.
-- Folder-selection dialogs ("Browse for folder") are not supported.
-- Windows 11 is untested, and Explorer tabs there are not handled.
-- Dialogs of programs running as administrator are untested.
-- Dialogs drawn by the program itself rather than by Windows (some Electron, Qt or Java applications) are not
+- Local drive-letter folders only. Network paths, virtual locations such as *This PC*, and archives are skipped.
+- Folder-selection dialogs ("Browse for folder") are not supported. Their *OK* means *pick this*, not *go there*.
+- Windows 11 is untested, and Explorer tabs are not handled.
+- Dialogs of programs running elevated are untested.
+- Dialogs a program draws itself rather than leaving to Windows (some Electron, Qt and Java applications) are not
   recognised.
 
-See [`STATUS.md`](STATUS.md) for exactly what has been tested and what has not.
+[`STATUS.md`](STATUS.md) has the exact test matrix, including what was not tested.
 
 ## Build
 
-Requires Visual Studio Build Tools (MSVC) with a Windows 10/11 SDK. From the `src` folder:
+You need the Visual Studio Build Tools (MSVC) and a Windows 10 or 11 SDK. From the `src` folder:
 
 ```
 build.bat
 ```
 
-This produces `src\out\thelastfolder.exe` (x64, Release, static runtime). `build.bat` expects the Build Tools in
-`C:\BuildTools2022`; edit the path at the top if yours are elsewhere. If `thelastfolder.exe` is running, exit it from the
-tray first, or build elsewhere with `build.bat some-other-folder`.
+That produces `src\out\thelastfolder.exe` (x64, Release, static runtime). The script expects the Build Tools in
+`C:\BuildTools2022`, so adjust the path at the top if yours live elsewhere. If the program is running, exit it from the
+tray first, or build elsewhere with `build.bat some-other-folder`. Windows will not let a linker overwrite an exe that is
+in use, which is the one thing it is consistent about.
 
 ## Repository layout
 
 - `src/` the application
-- `poc/` the navigation proof of concept and the test tools: a test dialog host, an imitation Total Commander, and
+- `poc/` the navigation proof of concept and the test tools: a test dialog host, an imitation Total Commander and a few
   window probes
 - `docs/` product specification, technical notes, design note and implementation plan
 - `STATUS.md` current behavior, test results and known limitations
