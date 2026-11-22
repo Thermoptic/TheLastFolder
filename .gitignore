@@ -1,0 +1,13 @@
+# Build output
+out/
+out-*/
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.manifest
+
+# Local scratch / debug output
+*.log
