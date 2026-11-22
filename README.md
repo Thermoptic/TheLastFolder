@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/Mappen_192.png" alt="The Last Folder" width="192" height="192">
+</p>
+
 # The Last Folder
 
 **Open and Save As dialogs that remember where you were.**
