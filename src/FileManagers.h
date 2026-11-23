@@ -28,7 +28,7 @@ public:
     void Stop();
 
 private:
-    enum class Kind { None, Explorer, TotalCommander };
+    enum class Kind { None, Explorer, TotalCommander, DoubleCommander };
 
     static void CALLBACK FocusProc(HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD);
     std::wstring ReadCurrentFolder();  // live read of the tracked file manager's folder
@@ -36,6 +36,7 @@ private:
     void CaptureTcFocus(HWND tc);
     std::wstring ExplorerFolder(HWND top);
     std::wstring TotalCommanderFolder(HWND tc);
+    std::wstring DoubleCommanderFolder(HWND dc);
 
     static FileManagers* self_;
     Kind kind_ = Kind::None;

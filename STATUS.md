@@ -16,6 +16,24 @@ Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build fol
 An earlier run of this test gave wrong results because an older build was still running and two instances acted on the
 same dialog (it even garbled the file name). Running two instances is not prevented by the app; keep to one.
 
+## Double Commander (added after v0.3.1)
+Double Commander 1.2.9 has the same window class (`TTOTAL_CMD`) as Total Commander but a different structure: all
+controls are plain `Window`s without text, and the path bar is a windowless graphic control, so nothing can be read from
+the panels. UI Automation only exposes the tab captions (last folder name, not the path). The one usable source is the
+main window title, which DC fills with the active panel's folder when its option **Show current directory in the main
+window title bar** (config key `ShowCurDirTitleBar`, under Options > Miscellaneous) is on:
+`<folder name> (<full path>\) - Double Commander <version>`.
+- `FileManagers` tells DC from TC by the title (starts with / contains "Double Commander"), then parses the path from the
+  parentheses that start with a drive letter (folder names may contain parentheses themselves).
+- Verified against the **real** DC on this machine (read-only): the parsed folder matches the title, including a long path
+  with spaces and a trailing backslash.
+- Verified end to end with an imitation (`poc/faketc.exe ... dc`): dialog stays put when opened; after switching DC's panel
+  and returning it jumps to the right folder, including `C:\Program Files (x86)`; Total Commander scenario still passes.
+- **Needs the DC option turned on.** With it off the title has no path, so nothing happens (by design). The option was turned
+  on by the user in their DC; this app never edits DC's configuration.
+- Not verified: a real round trip with the real DC in the foreground (the harness cannot bring it forward), and whether DC
+  updates the title for every kind of navigation (tab switch, panel switch, drive change). Please try those.
+
 ## Behavior (as specified by the product owner after testing v0.3.0)
 1. A new dialog **opens as usual**, in the folder the program chose. Nothing jumps the first time a dialog is seen.
 2. The user brings up Explorer or Total Commander. When the user **leaves** it, the folder it shows at that moment is

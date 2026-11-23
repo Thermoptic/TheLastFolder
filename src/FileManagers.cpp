@@ -45,6 +45,23 @@ std::wstring StripMask(std::wstring s) {
     return s;
 }
 
+constexpr wchar_t kDcTitleSuffix[] = L") - Double Commander";
+
+// Double Commander (window class TTOTAL_CMD, like Total Commander) draws its path bar itself, so nothing there can be
+// read. With its option "Show current directory in the main window title bar" the active panel's folder is in the
+// title: "<folder name> (<full path>\) - Double Commander <version>". Returns the path, or "" if it is not there.
+std::wstring ParseDoubleCommanderTitle(const std::wstring& t) {
+    const size_t end = t.rfind(kDcTitleSuffix);
+    if (end == std::wstring::npos) return L"";
+    // The path starts at " (" followed by a drive letter ("X:\"); a folder name may itself contain parentheses.
+    for (size_t i = 0; i + 4 < end; ++i) {
+        if (t[i] == L' ' && t[i + 1] == L'(' && std::iswalpha(t[i + 2]) && t[i + 3] == L':' &&
+            (t[i + 4] == L'\\' || t[i + 4] == L'/'))
+            return t.substr(i + 2, end - (i + 2));
+    }
+    return L"";
+}
+
 struct PathPanel { HWND hwnd; RECT rect; };
 BOOL CALLBACK EnumPathPanels(HWND h, LPARAM lp) {
     if (IsWindowVisible(h) && ClassOf(h) == L"TPathPanel") {
@@ -74,8 +91,15 @@ void FileManagers::NoteForeground(HWND hwnd) {
     }
     const std::wstring cls = ClassOf(hwnd);
     Kind k = Kind::None;
-    if (cls == L"CabinetWClass") k = Kind::Explorer;
-    else if (cls == L"TTOTAL_CMD") k = Kind::TotalCommander;
+    if (cls == L"CabinetWClass") {
+        k = Kind::Explorer;
+    } else if (cls == L"TTOTAL_CMD") {
+        // Double Commander uses the same window class as Total Commander; its title ends with its own name.
+        const std::wstring title = TextOf(hwnd);
+        k = title.find(L") - Double Commander") != std::wstring::npos || title.rfind(L"Double Commander", 0) == 0
+                ? Kind::DoubleCommander
+                : Kind::TotalCommander;
+    }
     if (k == Kind::None) return;
 
     DWORD pid = 0;
@@ -116,9 +140,17 @@ void FileManagers::CaptureTcFocus(HWND tc) {
 
 std::wstring FileManagers::ReadCurrentFolder() {
     if (kind_ == Kind::None || !hwnd_ || !IsWindow(hwnd_)) return L"";
-    const std::wstring p = kind_ == Kind::Explorer ? ExplorerFolder(hwnd_) : TotalCommanderFolder(hwnd_);
+    std::wstring p;
+    switch (kind_) {
+        case Kind::Explorer: p = ExplorerFolder(hwnd_); break;
+        case Kind::TotalCommander: p = TotalCommanderFolder(hwnd_); break;
+        case Kind::DoubleCommander: p = DoubleCommanderFolder(hwnd_); break;
+        case Kind::None: break;
+    }
     return IsLocalDirectory(p) ? p : L"";
 }
+
+std::wstring FileManagers::DoubleCommanderFolder(HWND dc) { return ParseDoubleCommanderTitle(TextOf(dc)); }
 
 // Documented route: the Shell's window list. The location URL of the matching window is a file: URL for
 // real folders and a ::{GUID} for "This PC" and similar, which PathCreateFromUrl rejects.

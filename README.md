@@ -6,7 +6,7 @@
 
 **The Open and Save As dialog finally knows where you were headed.**
 
-You know the routine. You are deep in a folder in Explorer or Total Commander, you alt-tab to some other program, hit
+You know the routine. You are deep in a folder in Explorer, Total Commander or Double Commander, you alt-tab to some other program, hit
 *File > Open*, and the dialog cheerfully offers you whatever directory that program last touched in 2019. Then comes the
 click-through: drive, folder, folder, folder, pause to question your life choices, folder.
 
@@ -17,7 +17,7 @@ resistance, quite literally.
 ## How it feels in use
 
 1. The dialog opens as it always has, in the folder the program normally picks.
-2. You switch to Explorer or Total Commander and go where you want to be.
+2. You switch to Explorer, Total Commander or Double Commander and go where you want to be.
 3. You switch back to the dialog. It jumps to that folder.
 4. You open or save the file like you would have anyway.
 
@@ -39,11 +39,16 @@ utility that needs a settings page to explain what it does has already lost the 
 
 ## Under the hood
 
-- **Tracking your file manager.** A WinEvent hook reports every change of the foreground window. When Explorer or
-  Total Commander comes to the front it is noted, and when you leave it, the folder it was showing is remembered.
-  Explorer is read through the Shell's documented window list (`IShellWindows`). For Total Commander it reads the path
-  bar of the panel that last had focus. Both are strictly read-only: nothing is sent to either program, and your
-  clipboard is left alone.
+- **Tracking your file manager.** A WinEvent hook reports every change of the foreground window. When a supported file
+  manager comes to the front it is noted, and when you leave it, the folder it was showing is remembered. Explorer is
+  read through the Shell's documented window list (`IShellWindows`). For Total Commander it reads the path bar of the
+  panel that last had focus. Double Commander draws its path bar itself, so nothing there can be read; it is read from
+  the window title instead (see below). All of it is strictly read-only: nothing is sent to any of these programs, and
+  your clipboard is left alone.
+- **Double Commander needs one setting.** Turn on *Configuration > Options > Miscellaneous > Show current directory in
+  the main window title bar*. Without it there is no reliable way to know the folder, so the program does nothing for
+  Double Commander rather than guessing. (Double Commander wears the same window class as Total Commander, so the title
+  is also how the two are told apart.)
 - **Recognising a dialog.** A standard Open or Save As dialog is identified by structure (the dialog window class, a
   filename box with a known control id, and a default button), never by title. That keeps it language-independent.
 - **The jump.** The existing dialog is navigated, not replaced. The folder path goes into the filename box and the
@@ -63,6 +68,7 @@ Known limits:
 
 - Local drive-letter folders only. Network paths, virtual locations such as *This PC*, and archives are skipped.
 - Folder-selection dialogs ("Browse for folder") are not supported. Their *OK* means *pick this*, not *go there*.
+- Double Commander only works with the title-bar setting above, and its title can only show the active panel's folder.
 - Windows 11 is untested, and Explorer tabs are not handled.
 - Dialogs of programs running elevated are untested.
 - Dialogs a program draws itself rather than leaving to Windows (some Electron, Qt and Java applications) are not
