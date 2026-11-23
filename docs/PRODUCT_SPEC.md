@@ -12,7 +12,7 @@
 
 ## 1. Product concept
 
-The Last Folder is a very small Windows utility inspired by exactly one feature of Listary: **Quick Switch**.
+The Last Folder is a very small Windows utility that does exactly one thing: it switches the folder of an already-open file dialog.
 
 Its sole purpose is to let a user quickly change the current folder inside an already-open Windows file dialog.
 
@@ -110,7 +110,7 @@ Do not add toolbars, settings, tabs, navigation panes, or decorative UI.
 
 ## 6. Activation and keyboard behavior
 
-The desired user workflow should be as close as practical to Listary Quick Switch.
+The desired user workflow should be as quick and unobtrusive as practical.
 
 Investigate a suitable activation approach for the first prototype. A global `Ctrl+G` hotkey is a reasonable initial default, but verify conflicts and behavior before committing to it.
 
