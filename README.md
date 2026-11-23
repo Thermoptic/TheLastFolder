@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/Mappen_192.png" alt="The Last Folder" width="192" height="192">
+  <img src="assets/banner.png" alt="The Last Folder: invisible by design, indispensable by habit." width="800">
 </p>
 
 # The Last Folder
