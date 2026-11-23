@@ -18,7 +18,7 @@ namespace {
 
 constexpr wchar_t kWindowClass[] = L"TheLastFolderWnd";
 constexpr wchar_t kAppName[] = L"The Last Folder";
-constexpr wchar_t kVersion[] = L"0.3.0 (prototype)";
+constexpr wchar_t kVersion[] = L"0.4.0 (prototype)";
 
 enum : UINT { WM_TRAYICON = WM_APP + 1 };
 enum : UINT { ID_ABOUT = 1001, ID_EXIT = 1002 };

@@ -74,7 +74,7 @@ utility that needs a settings page to explain what it does has already lost the 
 
 ## Status
 
-A working prototype, version 0.3. Tried by hand and automatically tested against test dialogs, on Windows 10 x64 only.
+A working prototype, version 0.4. Tried by hand and automatically tested against test dialogs, on Windows 10 x64 only.
 Expect rough edges, and treat anything not listed below as unverified rather than supported.
 
 Known limits:

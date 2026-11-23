@@ -1,7 +1,8 @@
 # Development Status
 
 ## Current stage
-**v0.3.1 prototype: behavior corrected after the first real test (see "Behavior" below).** Script-tested cleanly against
+**v0.4.0 prototype (first release): behavior corrected after the first real test (see "Behavior" below), Double Commander
+and the application icon added.** Script-tested cleanly against
 test doubles (table below). **The product owner then tried it by hand and reported "it works"** (2026-11-22); which
 combinations were tried (Explorer, Total Commander, Open vs Save As) was not itemized, so only treat what they named as confirmed.
 Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build folders were removed).
