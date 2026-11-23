@@ -105,7 +105,7 @@ in use, which is the one thing it is consistent about.
 ## Repository layout
 
 - `src/` the application
-- `assets/` the README banner and the application icon (`icon.ico`, 16 to 256 px, embedded in the exe). `make-icon.ps1`
+- `assets/` the application icon (`icon.ico`, 16 to 256 px, embedded in the exe). `make-icon.ps1`
   rebuilds it from the images in `icon-source/`
 - `poc/` the navigation proof of concept and the test tools: a test dialog host, an imitation Total Commander and a few
   window probes
