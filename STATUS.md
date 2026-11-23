@@ -31,8 +31,8 @@ window title bar** (config key `ShowCurDirTitleBar`, under Options > Miscellaneo
   and returning it jumps to the right folder, including `C:\Program Files (x86)`; Total Commander scenario still passes.
 - **Needs the DC option turned on.** With it off the title has no path, so nothing happens (by design). The option was turned
   on by the user in their DC; this app never edits DC's configuration.
-- Not verified: a real round trip with the real DC in the foreground (the harness cannot bring it forward), and whether DC
-  updates the title for every kind of navigation (tab switch, panel switch, drive change). Please try those.
+- **Confirmed by the product owner (2026-11-23): it works with the real Double Commander.** Exactly which navigations were
+  tried (tab switch, panel switch, drive change) was not itemized, so those are not individually confirmed.
 
 ## Behavior (as specified by the product owner after testing v0.3.0)
 1. A new dialog **opens as usual**, in the folder the program chose. Nothing jumps the first time a dialog is seen.
