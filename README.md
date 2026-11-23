@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="The Last Folder: invisible by design, indispensable by habit." width="800">
+  <img src="assets/icon-source/06_violet_chrome.png" alt="The Last Folder" width="256" height="304">
 </p>
 
 # The Last Folder
