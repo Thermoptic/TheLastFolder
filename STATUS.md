@@ -16,6 +16,25 @@ Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build fol
 An earlier run of this test gave wrong results because an older build was still running and two instances acted on the
 same dialog (it even garbled the file name). Running two instances is not prevented by the app; keep to one.
 
+## Application icon (added 2026-11-23)
+The product owner's icon is embedded as a resource (`src/app.rc`, `src/resource.h`, compiled by `rc` in `build.bat`). It is
+both the exe's icon in Explorer and the tray icon. The tray loads it at the system small-icon size (`SM_CXSMICON`): exactly
+the hand-made 16x16 image at 100% scaling, the nearest image scaled at higher DPI. The hand-drawn placeholder folder was
+removed from `TrayIcon.cpp`. The exe is about 170 KB.
+
+**Large sizes (fixed after the first version looked small on the desktop).** The first `icon.ico` only held 16 and 32 px, so
+Explorer had nothing larger to show when icons are enlarged. `assets/icon.ico` now holds **16, 32, 48, 64, 128 and 256 px**,
+built by `assets/make-icon.ps1` from `assets/icon-source/`:
+- 16 and 32 px: the hand-made images, unchanged.
+- 64, 128, 256 px: the large artwork `06_violet_chrome.png` (a 64x76 pixel-art grid drawn at 4x), cropped to a 256x256 square
+  (only empty rows removed, nothing scaled) and scaled with nearest neighbour, so the pixels stay sharp. 48 px is resampled
+  (0.75 of the 64 px grid cannot be pixel-exact).
+- Verified: loading the resource from the built exe at 16, 32, 48, 64, 96, 128 and 256 px returns exactly those sizes; the
+  256 px image was viewed and shows the whole artwork, uncropped and sharp.
+- Not verified: how it looks on a real desktop at each icon size, and the tray at scaling above 100% (scaled from the 16 or
+  32 px image). A 24 px image would make 150% crisper if it looks soft. Windows caches icons: an existing shortcut may keep
+  showing the old one until the icon cache refreshes (re-create the shortcut, or restart Explorer).
+
 ## Double Commander (added after v0.3.1)
 Double Commander 1.2.9 has the same window class (`TTOTAL_CMD`) as Total Commander but a different structure: all
 controls are plain `Window`s without text, and the path bar is a windowless graphic control, so nothing can be read from

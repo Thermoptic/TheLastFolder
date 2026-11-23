@@ -24,6 +24,22 @@ resistance, quite literally.
 It only acts if you have actually used a file manager since the dialog appeared. If you have not, the dialog is left
 alone. It does not second-guess you, and it does not redecorate while you are still thinking.
 
+## Supported file managers
+
+| File manager | Works out of the box | What it reads |
+|---|---|---|
+| **Windows Explorer** | Yes | The folder of the window you were in, via the Shell's documented window list |
+| **Total Commander** | Yes | The path bar of the panel you used last (tested with Total Commander 7.50) |
+| **Double Commander** | **Only with one setting turned on** | The folder shown in its window title |
+
+**Double Commander needs a setting.** It works only if you open *Configuration > Options > Miscellaneous* and tick
+**Show current directory in the main window title bar**. Double Commander draws its path bar itself, so the title bar is
+the only place the folder can be read from, and by default it is not there. Without the box ticked the program does
+nothing for Double Commander (it will not guess), which is the safe kind of useless.
+
+Whichever you use, the same rules apply: it reads, it never writes, and it only sees local drive-letter folders. Notes on
+what is untested are under [Status](#status).
+
 ## Small on purpose
 
 There is no UI to speak of. The tray icon is the whole interface, and the whole menu is **About** and **Exit**. A
@@ -43,12 +59,9 @@ utility that needs a settings page to explain what it does has already lost the 
   manager comes to the front it is noted, and when you leave it, the folder it was showing is remembered. Explorer is
   read through the Shell's documented window list (`IShellWindows`). For Total Commander it reads the path bar of the
   panel that last had focus. Double Commander draws its path bar itself, so nothing there can be read; it is read from
-  the window title instead (see below). All of it is strictly read-only: nothing is sent to any of these programs, and
-  your clipboard is left alone.
-- **Double Commander needs one setting.** Turn on *Configuration > Options > Miscellaneous > Show current directory in
-  the main window title bar*. Without it there is no reliable way to know the folder, so the program does nothing for
-  Double Commander rather than guessing. (Double Commander wears the same window class as Total Commander, so the title
-  is also how the two are told apart.)
+  the window title instead (see [Supported file managers](#supported-file-managers)). Double Commander wears the same
+  window class as Total Commander, so the title is also how the two are told apart. All of it is strictly read-only:
+  nothing is sent to any of these programs, and your clipboard is left alone.
 - **Recognising a dialog.** A standard Open or Save As dialog is identified by structure (the dialog window class, a
   filename box with a known control id, and a default button), never by title. That keeps it language-independent.
 - **The jump.** The existing dialog is navigated, not replaced. The folder path goes into the filename box and the
@@ -92,6 +105,8 @@ in use, which is the one thing it is consistent about.
 ## Repository layout
 
 - `src/` the application
+- `assets/` the README banner and the application icon (`icon.ico`, 16 to 256 px, embedded in the exe). `make-icon.ps1`
+  rebuilds it from the images in `icon-source/`
 - `poc/` the navigation proof of concept and the test tools: a test dialog host, an imitation Total Commander and a few
   window probes
 - `docs/` product specification, technical notes, design note and implementation plan

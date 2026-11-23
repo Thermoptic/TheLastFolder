@@ -1,0 +1,4 @@
+#include "resource.h"
+
+// The lowest icon id becomes the exe's icon in Explorer; the same resource is used for the tray icon.
+IDI_APP ICON "..\\assets\\icon.ico"

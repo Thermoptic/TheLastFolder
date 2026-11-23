@@ -30,5 +30,6 @@ private:
     UINT callbackMsg_ = 0;
     wchar_t tip_[128]{};
     HICON icon_ = nullptr;
+    bool ownsIcon_ = false;  // true if icon_ came from our resource (must be destroyed), false for a shared system icon
     bool added_ = false;
 };
