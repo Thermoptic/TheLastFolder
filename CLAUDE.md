@@ -30,10 +30,11 @@ Before writing code, read all documents in `docs/`.
 - Native Win32 implementation.
 - One portable executable.
 - A system tray icon while running.
-- Right-click tray menu with **About** and **Exit** only.
+- Right-click tray menu with **Run at Startup** (checkable), **About** and **Exit** only. (Run at Startup was added at the
+  product owner's request on 2026-11-24; it is the per-user `Run` registry value, not a settings system.)
 - No conventional main window.
 - Temporary Quick Switch overlay only when relevant.
-- No settings or configuration files.
+- No settings or configuration files. (The startup entry above is the only thing the program ever writes.)
 
 ## Build discipline
 

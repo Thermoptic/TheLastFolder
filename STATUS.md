@@ -17,6 +17,24 @@ Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build fol
 An earlier run of this test gave wrong results because an older build was still running and two instances acted on the
 same dialog (it even garbled the file name). Running two instances is not prevented by the app; keep to one.
 
+## Run at Startup (added 2026-11-24, after release 0.4.0; not released yet)
+The tray menu is now **Run at Startup** (checkable), a separator, **About**, **Exit**. Requested by the product owner; this
+overrides the earlier "About and Exit only" and "automatic start excluded" rules (noted in `docs/PRODUCT_SPEC.md` and
+`CLAUDE.md`). New module `src/Autostart.h/.cpp`; `MenuItem` got a `checked` flag and id 0 means a separator.
+- Mechanism: one `REG_SZ` value `TheLastFolder` in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, holding the exe's
+  full path in quotes. No admin rights, no service, no scheduled task, no file of our own.
+- The check mark is read back from the registry every time the menu opens (single source of truth). It reads as OFF when
+  the value points to a different exe (moved/renamed copy) and when Windows has switched the entry off itself (Task
+  Manager / Settings write a "disabled" byte under `...\Explorer\StartupApproved\Run`). Turning it on clears that mark.
+- Verified with a probe using a TEST value name (the real entry untouched): not registered, enable, disabled by Windows
+  (reads OFF), re-enable clears the mark, entry for another exe (reads OFF), rewrite, disable removes everything; nothing
+  left behind. Verified in the real app with messages to its own windows: the menu lists Run at Startup, separator,
+  About, Exit in that order; clicking creates the value with the quoted path, clicking again removes it; the check mark
+  is drawn when ON and not when OFF (read through UI Automation). The real startup entry was empty before and after.
+- Not verified: an actual Windows login with the entry in place, and a real mouse click on the menu item (the click was
+  sent as `WM_COMMAND`). Group policy that blocks writing the `Run` key is not handled specially: the toggle then simply
+  does not take effect and the mark stays as it was.
+
 ## Application icon (added 2026-11-23)
 The product owner's icon is embedded as a resource (`src/app.rc`, `src/resource.h`, compiled by `rc` in `build.bat`). It is
 both the exe's icon in Explorer and the tray icon. The tray loads it at the system small-icon size (`SM_CXSMICON`): exactly

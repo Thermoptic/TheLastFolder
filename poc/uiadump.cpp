@@ -20,7 +20,17 @@ static void Dump(IUIAutomationTreeWalker* w, IUIAutomationElement* e, int depth)
     e->get_CurrentControlType(&ct);
     std::wstring n = name ? name : L"";
     if (n.size() > 70) n = n.substr(0, 70) + L"...";
-    wprintf(L"%*s[%d] class=%s aid=%s name=\"%s\"\n", depth * 2, L"", (int)ct, cls ? cls : L"", aid ? aid : L"", n.c_str());
+    // MSAA state bits as exposed by UIA (0x10 = checked, 0x8 = pressed ...), shown only when non-zero.
+    VARIANT st;
+    VariantInit(&st);
+    long stateBits = 0;
+    if (SUCCEEDED(e->GetCurrentPropertyValue(UIA_LegacyIAccessibleStatePropertyId, &st)) && st.vt == VT_I4)
+        stateBits = st.lVal;
+    VariantClear(&st);
+    wchar_t stateText[24]{};
+    if (stateBits) swprintf(stateText, 24, L" state=0x%lX", stateBits);
+    wprintf(L"%*s[%d] class=%s aid=%s name=\"%s\"%s\n", depth * 2, L"", (int)ct, cls ? cls : L"", aid ? aid : L"", n.c_str(),
+            stateText);
     SysFreeString(name); SysFreeString(cls); SysFreeString(aid);
     IUIAutomationElement* c = nullptr;
     w->GetFirstChildElement(e, &c);

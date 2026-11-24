@@ -8,6 +8,6 @@ if not exist %OUTDIR% mkdir %OUTDIR%
 rem Resources: the application icon (assets\icon.ico) is embedded in the exe.
 rc /nologo /fo %OUTDIR%\app.res app.rc || exit /b 1
 cl /nologo /std:c++20 /O2 /MT /EHsc /W4 /WX /DUNICODE /D_UNICODE /DWIN32_LEAN_AND_MEAN /DNOMINMAX ^
-   main.cpp TrayIcon.cpp DialogAdapter.cpp DialogWatcher.cpp FileManagers.cpp ^
+   main.cpp TrayIcon.cpp Autostart.cpp DialogAdapter.cpp DialogWatcher.cpp FileManagers.cpp ^
    /Fo:%OUTDIR%\ /Fe:%OUTDIR%\thelastfolder.exe ^
-   /link /SUBSYSTEM:WINDOWS /MANIFEST:EMBED user32.lib shell32.lib gdi32.lib ole32.lib oleaut32.lib shlwapi.lib uuid.lib %OUTDIR%\app.res || exit /b 1
+   /link /SUBSYSTEM:WINDOWS /MANIFEST:EMBED user32.lib shell32.lib gdi32.lib ole32.lib oleaut32.lib shlwapi.lib uuid.lib advapi32.lib %OUTDIR%\app.res || exit /b 1

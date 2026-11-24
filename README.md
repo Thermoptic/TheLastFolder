@@ -42,16 +42,33 @@ what is untested are under [Status](#status).
 
 ## Small on purpose
 
-There is no UI to speak of. The tray icon is the whole interface, and the whole menu is **About** and **Exit**. A
-utility that needs a settings page to explain what it does has already lost the argument.
+There is no UI to speak of. The tray icon is the whole interface, and the whole menu is three lines: **Run at Startup**
+(a check mark you can turn on or off), **About** and **Exit**. A utility that needs a settings page to explain what it
+does has already lost the argument.
 
-- **One portable exe, roughly 150 KB.** No installer, no runtime to hunt down, nothing beyond the Windows system
+- **One portable exe, roughly 175 KB.** No installer, no runtime to hunt down, nothing beyond the Windows system
   libraries. You can carry it on a USB stick, in your pocket, or in a small bird's beak.
 - **Idle means idle.** It is event-driven, so it does nothing until Windows tells it something happened. One measurement on
   Windows 10 showed 0 ms of CPU over 15 seconds and about 8 MB of memory, on a single thread.
 - **Nothing to configure, and nothing to leak.** No settings, config files, database, indexer, logging, telemetry or network
-  access. It cannot phone home because it has never learned the number.
+  access. It cannot phone home because it has never learned the number. The one thing it can ever write is the startup
+  entry, and only if you tick **Run at Startup** (see below).
 - **Native.** C++20 and plain Win32, built with MSVC. No framework was harmed.
+
+## Run at Startup
+
+Right-click the tray icon and tick **Run at Startup** to have it start when you log in. Untick it to stop. That is the
+whole feature.
+
+- It uses the standard per-user mechanism: one value in `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`,
+  named `TheLastFolder`, holding the full path of the exe. No administrator rights, no service, no scheduled task, and
+  no files of its own.
+- The check mark is read from Windows each time you open the menu, so it always shows what will really happen. If you
+  switch the entry off in Task Manager or *Settings > Apps > Startup*, the mark is cleared too.
+- If you move or rename the exe, the old entry no longer matches it and the item shows as unticked. Tick it again to
+  point it at the new location.
+- Before deleting the program, untick **Run at Startup**, otherwise Windows will keep looking for it at login. It will
+  not find it, and it will be quiet about it.
 
 ## Under the hood
 

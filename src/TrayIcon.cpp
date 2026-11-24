@@ -63,7 +63,10 @@ void TrayIcon::Remove() {
 void TrayIcon::ShowMenu(POINT pt, const MenuItem* items, size_t count) {
     HMENU menu = CreatePopupMenu();
     if (!menu) return;
-    for (size_t i = 0; i < count; ++i) AppendMenuW(menu, MF_STRING, items[i].id, items[i].text);
+    for (size_t i = 0; i < count; ++i) {
+        if (items[i].id == 0) AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
+        else AppendMenuW(menu, MF_STRING | (items[i].checked ? MF_CHECKED : 0), items[i].id, items[i].text);
+    }
     // Required so the menu closes when the user clicks elsewhere.
     SetForegroundWindow(hwnd_);
     TrackPopupMenuEx(menu, TPM_RIGHTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, hwnd_, nullptr);

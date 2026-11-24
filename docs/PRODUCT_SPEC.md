@@ -9,6 +9,12 @@
 > Still in force: tray icon with About/Exit, no settings, no main window, event-driven and near-idle, never guess
 > (if the folder is unknown, do nothing), fail safely. Details of the implemented behavior are in `STATUS.md`.
 > The sections below are kept as originally written and are partly superseded.
+>
+> **Second change (requested by the product owner, 2026-11-24): "Run at Startup".** The tray menu is now **Run at Startup**
+> (a checkable item), a separator, **About** and **Exit**. This overrides section 4 ("About, Exit") and removes
+> "Automatic start with Windows" from the exclusions in section 3. It is the standard per-user `Run` registry value
+> (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, name `TheLastFolder`); no settings file or other persistent
+> configuration is introduced, and the check mark is always read back from the registry.
 
 ## 1. Product concept
 

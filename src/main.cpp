@@ -1,14 +1,15 @@
 // The Last Folder: application shell. Hidden window + tray icon + dialog watcher + file manager tracking.
 //
-// Behavior: remember the folder of the file manager (Explorer / Total Commander) the user used last.
-// When a standard Open / Save As dialog of another program becomes active, jump it to that folder.
-// No UI besides the tray icon.
+// Behavior: remember the folder of the file manager (Explorer / Total Commander / Double Commander) the user used last.
+// When the user comes back to a standard Open / Save As dialog of another program, jump it to that folder.
+// No UI besides the tray icon and its menu (Run at Startup, About, Exit).
 #include <windows.h>
 #include <windowsx.h>
 #include <objbase.h>  // CoInitializeEx; not pulled in by WIN32_LEAN_AND_MEAN
 #include <algorithm>
 #include <string>
 #include <vector>
+#include "Autostart.h"
 #include "DialogAdapter.h"
 #include "DialogWatcher.h"
 #include "FileManagers.h"
@@ -21,18 +22,23 @@ constexpr wchar_t kAppName[] = L"The Last Folder";
 constexpr wchar_t kVersion[] = L"0.4.0 (prototype)";
 
 enum : UINT { WM_TRAYICON = WM_APP + 1 };
-enum : UINT { ID_ABOUT = 1001, ID_EXIT = 1002 };
+enum : UINT { ID_ABOUT = 1001, ID_EXIT = 1002, ID_STARTUP = 1003 };
 constexpr UINT_PTR kAutoNavTimer = 1;
 constexpr UINT_PTR kVerifyTimer = 2;
 constexpr UINT kAutoNavDelayMs = 250;  // let a freshly shown dialog finish initializing
 constexpr UINT kVerifyIntervalMs = 100;
 constexpr int kVerifyMaxTicks = 20;    // ~2 s
 
-// Menu construction is data-driven so commands can be added later. Only these two exist for now.
-constexpr MenuItem kMenu[] = {
-    {ID_ABOUT, L"About"},
-    {ID_EXIT, L"Exit"},
-};
+// Built every time the menu is shown, so the check mark always reflects what the registry says right now.
+void ShowTrayMenu(TrayIcon& tray, POINT pt) {
+    const MenuItem items[] = {
+        {ID_STARTUP, L"Run at Startup", Autostart::IsEnabled()},
+        {0, nullptr},  // separator
+        {ID_ABOUT, L"About"},
+        {ID_EXIT, L"Exit"},
+    };
+    tray.ShowMenu(pt, items, ARRAYSIZE(items));
+}
 
 struct App {
     HWND hwnd = nullptr;
@@ -165,7 +171,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_TRAYICON:
             if (LOWORD(lp) == WM_CONTEXTMENU)  // NOTIFYICON_VERSION_4: wp = anchor point in screen coords
-                app->tray.ShowMenu({GET_X_LPARAM(wp), GET_Y_LPARAM(wp)}, kMenu, ARRAYSIZE(kMenu));
+                ShowTrayMenu(app->tray, {GET_X_LPARAM(wp), GET_Y_LPARAM(wp)});
             return 0;
         case WM_TIMER:
             if (wp == kAutoNavTimer) OnAutoNav(*app);
@@ -173,6 +179,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         case WM_COMMAND:
             if (LOWORD(wp) == ID_ABOUT) ShowAbout(hwnd, *app);
+            else if (LOWORD(wp) == ID_STARTUP) Autostart::SetEnabled(!Autostart::IsEnabled());  // a failure leaves the check unchanged
             else if (LOWORD(wp) == ID_EXIT) DestroyWindow(hwnd);
             return 0;
         case WM_DESTROY:

@@ -3,8 +3,9 @@
 #include <windows.h>
 
 struct MenuItem {
-    UINT id;
+    UINT id;                  // command id delivered as WM_COMMAND; 0 makes a separator line (text is ignored)
     const wchar_t* text;
+    bool checked = false;     // draws a check mark in front of the item
 };
 
 class TrayIcon {
