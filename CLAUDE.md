@@ -30,11 +30,13 @@ Before writing code, read all documents in `docs/`.
 - Native Win32 implementation.
 - One portable executable.
 - A system tray icon while running.
-- Right-click tray menu with **Run at Startup** (checkable), **About** and **Exit** only. (Run at Startup was added at the
+- Right-click tray menu with **Run at Startup** (checkable), **Set Icon**, **About** and **Exit** only. (Set Icon was added at
+  the product owner's request on 2026-11-26: a small dialog for a custom tray icon.) (Run at Startup was added at the
   product owner's request on 2026-11-24; it is the per-user `Run` registry value, not a settings system.)
 - No conventional main window.
 - Temporary Quick Switch overlay only when relevant.
-- No settings or configuration files. (The startup entry above is the only thing the program ever writes.)
+- No settings or configuration files. (The only things the program ever writes are two optional per-user registry entries: the
+  startup entry, and the custom icon choice under `HKCU\Software\TheLastFolder`. No files.)
 
 ## Build discipline
 

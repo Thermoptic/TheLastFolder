@@ -15,6 +15,13 @@
 > "Automatic start with Windows" from the exclusions in section 3. It is the standard per-user `Run` registry value
 > (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, name `TheLastFolder`); no settings file or other persistent
 > configuration is introduced, and the check mark is always read back from the registry.
+>
+> **Third change (requested by the product owner, 2026-11-26): "Set Icon".** The tray menu is now **Run at Startup**,
+> **Set Icon**, a separator, **About**, **Exit**. "Set Icon" opens one small window: a check box "Set custom icon", a
+> "Browse" button with the chosen file shown to its right, and "Apply" / "Cancel". Unticking and applying returns to the
+> built-in icon but keeps the chosen path so it can be switched on again. This needs the choice to survive a restart, so
+> two values are stored in the registry (`HKCU\Software\TheLastFolder`: `CustomIconEnabled`, `CustomIconPath`). It overrides
+> the earlier "no settings" rule only to that extent; the program still creates no file of its own.
 
 ## 1. Product concept
 

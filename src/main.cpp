@@ -13,6 +13,8 @@
 #include "DialogAdapter.h"
 #include "DialogWatcher.h"
 #include "FileManagers.h"
+#include "SetIconDialog.h"
+#include "Settings.h"
 #include "TrayIcon.h"
 
 namespace {
@@ -22,7 +24,7 @@ constexpr wchar_t kAppName[] = L"The Last Folder";
 constexpr wchar_t kVersion[] = L"0.4.0 (prototype)";
 
 enum : UINT { WM_TRAYICON = WM_APP + 1 };
-enum : UINT { ID_ABOUT = 1001, ID_EXIT = 1002, ID_STARTUP = 1003 };
+enum : UINT { ID_ABOUT = 1001, ID_EXIT = 1002, ID_STARTUP = 1003, ID_SETICON = 1004 };
 constexpr UINT_PTR kAutoNavTimer = 1;
 constexpr UINT_PTR kVerifyTimer = 2;
 constexpr UINT kAutoNavDelayMs = 250;  // let a freshly shown dialog finish initializing
@@ -33,6 +35,7 @@ constexpr int kVerifyMaxTicks = 20;    // ~2 s
 void ShowTrayMenu(TrayIcon& tray, POINT pt) {
     const MenuItem items[] = {
         {ID_STARTUP, L"Run at Startup", Autostart::IsEnabled()},
+        {ID_SETICON, L"Set Icon"},
         {0, nullptr},  // separator
         {ID_ABOUT, L"About"},
         {ID_EXIT, L"Exit"},
@@ -47,6 +50,7 @@ struct App {
     FileManagers fm;
     UINT taskbarCreated = 0;
     bool aboutOpen = false;
+    bool setIconOpen = false;
 
     // A dialog opens as usual and is never jumped the first time it is seen. It only jumps when the user comes
     // back to it after having used a file manager: `serial` is FileManagers::Serial() as of the last time that
@@ -144,6 +148,21 @@ void OnVerifyTick(App& app) {
     if (done || ++app.verifyTicks >= kVerifyMaxTicks) FinishNav(app);  // also on failure: do not leave our path behind
 }
 
+// Puts the tray icon the user chose into effect: the saved custom file if it is switched on and still loads, otherwise the
+// built-in icon. A missing or broken file never stops the program; it just falls back (the saved choice is left alone).
+void ApplyConfiguredIcon(TrayIcon& tray) {
+    const Settings::CustomIcon saved = Settings::LoadCustomIcon();
+    if (saved.enabled && !saved.path.empty() && tray.SetIconFromFile(saved.path.c_str())) return;
+    tray.SetDefaultIcon();
+}
+
+void ShowSetIcon(HWND hwnd, App& app) {
+    if (app.setIconOpen) return;
+    app.setIconOpen = true;
+    if (ShowSetIconDialog(GetModuleHandleW(nullptr), hwnd)) ApplyConfiguredIcon(app.tray);
+    app.setIconOpen = false;
+}
+
 void ShowAbout(HWND hwnd, App& app) {
     if (app.aboutOpen) return;
     app.aboutOpen = true;
@@ -180,6 +199,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_COMMAND:
             if (LOWORD(wp) == ID_ABOUT) ShowAbout(hwnd, *app);
             else if (LOWORD(wp) == ID_STARTUP) Autostart::SetEnabled(!Autostart::IsEnabled());  // a failure leaves the check unchanged
+            else if (LOWORD(wp) == ID_SETICON) ShowSetIcon(hwnd, *app);
             else if (LOWORD(wp) == ID_EXIT) DestroyWindow(hwnd);
             return 0;
         case WM_DESTROY:
@@ -220,6 +240,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
     app.hwnd = CreateWindowExW(0, kWindowClass, kAppName, WS_OVERLAPPED, 0, 0, 0, 0, nullptr, nullptr, inst, &app);
     if (!app.hwnd) return 1;
 
+    ApplyConfiguredIcon(app.tray);  // before the icon is added, so the right one is there from the first moment
     if (!app.tray.Add(app.hwnd, WM_TRAYICON, kAppName) ||
         !app.watcher.Start([&app](DialogWatcher::Event e, HWND h) { OnDialogEvent(app, e, h); })) {
         DestroyWindow(app.hwnd);  // WM_DESTROY releases whatever was set up

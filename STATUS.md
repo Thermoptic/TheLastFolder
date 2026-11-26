@@ -17,6 +17,37 @@ Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build fol
 An earlier run of this test gave wrong results because an older build was still running and two instances acted on the
 same dialog (it even garbled the file name). Running two instances is not prevented by the app; keep to one.
 
+## Set Icon (added 2026-11-26, after release 0.4.0; not released yet)
+New tray menu item **Set Icon** (menu is now: Run at Startup, Set Icon, separator, About, Exit). It opens one small native
+dialog (`src/SetIconDialog.cpp`, template in `src/app.rc`): check box **Set custom icon**, button **Browse** with the chosen
+file shown to its right, buttons **Apply** and **Cancel**. Requested by the product owner; recorded in `PRODUCT_SPEC.md`
+(third change) and `CLAUDE.md`.
+- Behavior: unticked = built-in icon, but the chosen path is kept and shown dimmed, so ticking again restores the choice
+  without browsing. Browse and the path are only live while the box is ticked. Apply saves and changes the tray icon at
+  once (`NIM_MODIFY`); Cancel changes nothing. Ticked with no file, or with a file that is not an icon: Apply explains and
+  keeps the dialog open, nothing is saved. Only `.ico` files (no PNG).
+- Storage: `HKCU\Software\TheLastFolder` with `CustomIconEnabled` (DWORD) and `CustomIconPath` (string), via the new
+  `src/Settings.cpp`. No files. This is the first persistent setting; the earlier "no settings" rule was relaxed to that extent.
+- At startup the saved icon is used before the tray icon is added; a missing or broken file silently falls back to the
+  built-in icon and the saved choice is left alone. The exe's own icon in Explorer is not affected (it is part of the file).
+- Verified (built exe, run from `src\out`, driven with messages to its own windows, registry checked after each step):
+  first open (unticked, Browse and path dimmed, "(no file chosen)"); Cancel saves nothing; tick + Apply without a file is
+  refused and nothing is saved; Browse (the real file chooser, driven by setting its file name) fills the path; Apply saves
+  `enabled=1` and the path; untick + Apply saves `enabled=0` and **keeps the path**; reopening shows the unticked box with
+  the path dimmed; ticking again needs no Browse; a text file named `.ico` is refused by Apply and nothing is saved.
+  The tray icon itself was checked from the screen (position from `Shell_NotifyIconGetRect`, colour of the 16 px icon):
+  violet built-in -> orange custom immediately after Apply -> violet after untick -> orange after tick; also orange at
+  startup with the choice saved, and gone after a clean exit. The dialog was captured and looks as specified (ticked and unticked).
+- Test-environment caveat: when the same exe was started and stopped many times in a row, Windows sometimes did not show the
+  tray icon at all (`Shell_NotifyIconGetRect` returned "not visible" although the process was alive). The **release 0.4.0 exe
+  behaved the same** in an alternating test, so this is Windows tray behavior and not caused by this feature. It made the
+  "restart" and "missing file falls back" cases impossible to confirm visually in some runs; for the latter only "no crash,
+  still running" is confirmed. Orange-at-startup was confirmed in an earlier clean run.
+- Not verified: a real mouse click on the menu item and on the dialog's buttons (they were sent as messages); the dialog at
+  display scaling above 100% (the template uses dialog units and per-monitor DPI awareness, but this was not looked at);
+  `.ico` files with only large images (the closest image is scaled to the tray size); icons in `.exe`/`.dll` or PNG files
+  (not supported).
+
 ## Run at Startup (added 2026-11-24, after release 0.4.0; not released yet)
 The tray menu is now **Run at Startup** (checkable), a separator, **About**, **Exit**. Requested by the product owner; this
 overrides the earlier "About and Exit only" and "automatic start excluded" rules (noted in `docs/PRODUCT_SPEC.md` and

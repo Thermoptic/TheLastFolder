@@ -1,4 +1,18 @@
+#include <windows.h>
 #include "resource.h"
 
-// The lowest icon id becomes the exe's icon in Explorer; the same resource is used for the tray icon.
+// The lowest icon id becomes the exe's icon in Explorer; the same resource is the default tray icon.
 IDI_APP ICON "..\\assets\\icon.ico"
+
+// "Set Icon" dialog (sizes are in dialog units, so it scales with the font and the screen's DPI).
+IDD_SETICON DIALOGEX 0, 0, 262, 88
+STYLE DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Icon"
+FONT 9, "Segoe UI"
+BEGIN
+    AUTOCHECKBOX    "Set custom icon", IDC_CUSTOM, 12, 12, 238, 10
+    PUSHBUTTON      "Browse...", IDC_BROWSE, 26, 30, 50, 14
+    LTEXT           "", IDC_PATH, 82, 33, 168, 10, SS_PATHELLIPSIS | SS_NOPREFIX
+    DEFPUSHBUTTON   "Apply", IDOK, 146, 66, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 200, 66, 50, 14
+END

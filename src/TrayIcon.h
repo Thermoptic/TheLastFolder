@@ -8,6 +8,10 @@ struct MenuItem {
     bool checked = false;     // draws a check mark in front of the item
 };
 
+// Loads an icon from an .ico file at `size` x `size` (the closest image in the file is used). Caller destroys it.
+// Returns null if the file is missing or is not a usable icon.
+HICON LoadIconFromFile(const wchar_t* path, int size);
+
 class TrayIcon {
 public:
     TrayIcon() = default;
@@ -21,11 +25,17 @@ public:
     void Readd();
     void Remove();
 
+    // Switches the icon shown in the tray. Safe before Add() (takes effect when the icon is added).
+    // SetIconFromFile returns false and leaves the current icon alone if the file cannot be loaded.
+    bool SetIconFromFile(const wchar_t* path);
+    void SetDefaultIcon();  // the built-in icon (assets/icon.ico, embedded in the exe)
+
     // Shows the context menu at screen position `pt`; chosen item arrives as WM_COMMAND on the owner.
     void ShowMenu(POINT pt, const MenuItem* items, size_t count);
 
 private:
     bool AddInternal();
+    void ReplaceIcon(HICON icon, bool owned);  // swaps icon_, updates the tray if it is shown, frees the old one
 
     HWND hwnd_ = nullptr;
     UINT callbackMsg_ = 0;

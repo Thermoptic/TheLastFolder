@@ -42,17 +42,18 @@ what is untested are under [Status](#status).
 
 ## Small on purpose
 
-There is no UI to speak of. The tray icon is the whole interface, and the whole menu is three lines: **Run at Startup**
-(a check mark you can turn on or off), **About** and **Exit**. A utility that needs a settings page to explain what it
-does has already lost the argument.
+There is no UI to speak of. The tray icon is the whole interface, and the whole menu is four lines: **Run at Startup**
+(a check mark you can turn on or off), **Set Icon** (one small window, described below), **About** and **Exit**. A
+utility that needs a settings page to explain what it does has already lost the argument.
 
-- **One portable exe, roughly 175 KB.** No installer, no runtime to hunt down, nothing beyond the Windows system
+- **One portable exe, roughly 180 KB.** No installer, no runtime to hunt down, nothing beyond the Windows system
   libraries. You can carry it on a USB stick, in your pocket, or in a small bird's beak.
 - **Idle means idle.** It is event-driven, so it does nothing until Windows tells it something happened. One measurement on
   Windows 10 showed 0 ms of CPU over 15 seconds and about 8 MB of memory, on a single thread.
-- **Nothing to configure, and nothing to leak.** No settings, config files, database, indexer, logging, telemetry or network
-  access. It cannot phone home because it has never learned the number. The one thing it can ever write is the startup
-  entry, and only if you tick **Run at Startup** (see below).
+- **Nothing to configure, and nothing to leak.** No config files, database, indexer, logging, telemetry or network
+  access. It cannot phone home because it has never learned the number. The only things it can ever write are two
+  optional entries in your user registry: the startup entry if you tick **Run at Startup**, and your icon choice if you
+  use **Set Icon** (both described below). Never a file, never anywhere else.
 - **Native.** C++20 and plain Win32, built with MSVC. No framework was harmed.
 
 ## Run at Startup
@@ -69,6 +70,24 @@ whole feature.
   point it at the new location.
 - Before deleting the program, untick **Run at Startup**, otherwise Windows will keep looking for it at login. It will
   not find it, and it will be quiet about it.
+
+## Set Icon
+
+Right-click the tray icon and choose **Set Icon** to give the tray icon a look of your own. One small window opens:
+
+- **Set custom icon**: a check box. Tick it to use your own icon.
+- **Browse**: lets you pick an icon file (`.ico`). The file you chose is shown to the right of the button.
+- **Apply** saves the choice and changes the tray icon straight away. **Cancel** changes nothing.
+
+Untick the box and press Apply to go back to the built-in icon. The file you picked stays remembered (and is shown, dimmed),
+so you can tick the box again later and get your icon back without browsing for it a second time.
+
+- Only `.ico` files are supported. If the file cannot be loaded as an icon, **Apply** says so and keeps the window open.
+- It changes the tray icon only. The exe's icon in Explorer is part of the file and stays as it is.
+- The choice is stored in your user registry under `HKEY_CURRENT_USER\Software\TheLastFolder` (two values: whether it is on,
+  and the file path). Nothing else is written, no files are created, and deleting that key makes the program forget it.
+- If the file is moved or deleted later, the program quietly falls back to the built-in icon. It does not complain, and it
+  keeps the remembered path in case the file comes back.
 
 ## Under the hood
 

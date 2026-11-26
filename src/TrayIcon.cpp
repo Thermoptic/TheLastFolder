@@ -15,6 +15,10 @@ HICON LoadAppIcon(int size) {
 
 }  // namespace
 
+HICON LoadIconFromFile(const wchar_t* path, int size) {
+    return static_cast<HICON>(LoadImageW(nullptr, path, IMAGE_ICON, size, size, LR_LOADFROMFILE | LR_DEFAULTCOLOR));
+}
+
 TrayIcon::~TrayIcon() {
     Remove();
     if (icon_ && ownsIcon_) DestroyIcon(icon_);
@@ -24,12 +28,37 @@ bool TrayIcon::Add(HWND owner, UINT callbackMsg, const wchar_t* tooltip) {
     hwnd_ = owner;
     callbackMsg_ = callbackMsg;
     wcsncpy_s(tip_, tooltip, _TRUNCATE);
-    if (!icon_) {
-        icon_ = LoadAppIcon(GetSystemMetrics(SM_CXSMICON));
-        ownsIcon_ = icon_ != nullptr;
-        if (!icon_) icon_ = LoadIconW(nullptr, IDI_APPLICATION);  // shared system icon; never destroyed by us
-    }
+    if (!icon_) SetDefaultIcon();  // nothing chosen before Add(): start with the built-in icon
     return AddInternal();
+}
+
+void TrayIcon::ReplaceIcon(HICON icon, bool owned) {
+    HICON old = icon_;
+    const bool oldOwned = ownsIcon_;
+    icon_ = icon;
+    ownsIcon_ = owned;
+    if (added_) {
+        NOTIFYICONDATAW nid{sizeof(nid)};
+        nid.hWnd = hwnd_;
+        nid.uID = kIconId;
+        nid.uFlags = NIF_ICON;
+        nid.hIcon = icon_;
+        Shell_NotifyIconW(NIM_MODIFY, &nid);
+    }
+    if (old && oldOwned) DestroyIcon(old);  // only after the tray stopped using it
+}
+
+bool TrayIcon::SetIconFromFile(const wchar_t* path) {
+    HICON icon = LoadIconFromFile(path, GetSystemMetrics(SM_CXSMICON));
+    if (!icon) return false;
+    ReplaceIcon(icon, true);
+    return true;
+}
+
+void TrayIcon::SetDefaultIcon() {
+    HICON icon = LoadAppIcon(GetSystemMetrics(SM_CXSMICON));
+    if (icon) ReplaceIcon(icon, true);
+    else ReplaceIcon(LoadIconW(nullptr, IDI_APPLICATION), false);  // shared system icon; never destroyed by us
 }
 
 bool TrayIcon::AddInternal() {
