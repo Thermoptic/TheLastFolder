@@ -2,12 +2,10 @@
   <img src="assets/icon-source/06_violet_chrome.png" alt="The Last Folder" width="256" height="304">
 </p>
 
-<p align="center">
-  <a href="https://github.com/Thermoptic/TheLastFolder/releases"><img alt="Latest Version" src="https://img.shields.io/github/v/release/Thermoptic/TheLastFolder?include_prereleases&amp;label=Latest%20Version&amp;color=8a4fff"></a>
-  <a href="https://github.com/Thermoptic/TheLastFolder/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Thermoptic/TheLastFolder/total?label=Downloads&amp;color=8a4fff"></a>
-</p>
-
 # The Last Folder
+
+[![Latest Version](https://img.shields.io/github/v/release/Thermoptic/TheLastFolder?include_prereleases&label=Latest%20Version&color=8a4fff)](https://github.com/Thermoptic/TheLastFolder/releases)
+[![Downloads](https://img.shields.io/github/downloads/Thermoptic/TheLastFolder/total?label=Downloads&color=8a4fff)](https://github.com/Thermoptic/TheLastFolder/releases)
 
 **The Open and Save As dialog finally knows where you were headed.**
 
