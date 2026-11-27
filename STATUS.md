@@ -17,6 +17,23 @@ Output: `src\out\thelastfolder.exe` (the temporary `out-test`/`out-v2` build fol
 An earlier run of this test gave wrong results because an older build was still running and two instances acted on the
 same dialog (it even garbled the file name). Running two instances is not prevented by the app; keep to one.
 
+## Select Folder dialogs (added 2026-11-28, after release 0.4.0; not released yet)
+Reported by the product owner: the app did nothing in a "Select Folder" dialog (seen when Claude Code asked for a folder).
+Cause: `DialogAdapter` deliberately ignored the folder picker (edit id 1152). That was based on an assumption written in
+`docs/DESIGN_NOTE.md`, "path + OK would select the folder and close the dialog", which had **never been tested**.
+- Measured against a real `IFileOpenDialog` with `FOS_PICKFOLDERS` in another process: replacing the filename box text with a
+  folder path and pressing OK moves the dialog there and keeps it open (filename box emptied); pressing "Select Folder"
+  afterwards returns exactly that folder. Checked for `C:\Users` and `C:\Program Files (x86)`; the host now writes the folder
+  it returned to a file (`poc/dialoghost.cpp`, 3rd argument) so this could be proven and not just observed.
+- Fix: removed the block in `IsSupported` and `Navigate` (`src/DialogAdapter.cpp`); the same navigation method is used.
+- Verified end to end in the app (fake Total Commander, then fake Double Commander): the picker opens and stays put; after
+  using the file manager and coming back it jumps to the right folder and stays open; "Select Folder" then returns that folder.
+  Then 5 more runs of the Total Commander case (3 Select Folder, 2 Open) all jumped correctly. In the very first Total Commander
+  run one jump (left panel) did not happen while the later ones did; not explained, not reproduced in 5 runs.
+- Not verified: the user's actual dialog (Claude Code / Electron). It is expected to be the same standard dialog, but this
+  was only checked against the equivalent dialog from a test program. The old tree-style `SHBrowseForFolder` dialog is a
+  different dialog and is still not supported.
+
 ## Set Icon (added 2026-11-26, after release 0.4.0; not released yet)
 New tray menu item **Set Icon** (menu is now: Run at Startup, Set Icon, separator, About, Exit). It opens one small native
 dialog (`src/SetIconDialog.cpp`, template in `src/app.rc`): check box **Set custom icon**, button **Browse** with the chosen
@@ -127,7 +144,7 @@ The Last Folder, `thelastfolder.exe`. Tray icon (About, Exit). No window, no hot
 5. The jump is confirmed by a non-blocking timer (100 ms, up to 2 s). In Save As the user's file name is read first and
    put back afterwards. Failures are silent (no UI by design).
 - **Never guesses:** unknown/unreadable folder, closed file manager, unknown active panel, non-local drive, special
-  location ("This PC"), folder picker dialogs: nothing happens.
+  location ("This PC"), tree-style "Browse for Folder" dialogs: nothing happens.
 - **Explorer:** documented COM route (`IShellWindows`, location URL of the matching window).
 - **Total Commander:** read-only. Path text of the `TPathPanel` that belongs to the file list that last had focus
   (structure observed in the real TC 7.50 with `poc/wintree.exe`). Nothing is sent to TC; the clipboard is not used.

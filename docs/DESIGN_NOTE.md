@@ -9,7 +9,7 @@ Findings below were observed on Windows 10 22H2 x64, Swedish UI, with real dialo
 | Legacy `GetSaveFileName` | Navigation verified |
 | Common Item Dialog Open | Navigation verified |
 | Common Item Dialog Save | Navigation verified |
-| Folder picker (`FOS_PICKFOLDERS`) | **Detected, not navigable** with this method |
+| Folder picker (`FOS_PICKFOLDERS`, "Select Folder") | Navigation verified (earlier marked "not navigable": that was an untested assumption, corrected 2026-11-28) |
 | Custom dialogs (Electron, Qt, Office, Java) | Not investigated; out of scope for first release |
 
 ## 2. Detection (planned, product phase)
@@ -40,7 +40,12 @@ The navigation overwrites the filename box, so the product reads it first and re
 Read the current folder from the `ToolbarWindow32` under `Breadcrumb Parent` inside `Address Band Root`. Its text is `<localized label>: <path>`; only the part after the first `": "` is used. Compare case-insensitively with the target. PoC polls up to 2 s; the product should wait on a WinEvent (name change) rather than poll.
 
 ## 7. Limitations
-- **Folder picker**: path + OK selects the folder and closes the dialog. Refused on purpose. Needs a different method (address bar) if ever supported.
+- **Folder picker ("Select Folder")**: supported with the same method as Open and Save As. This note originally said that path + OK would
+  select the folder and close the dialog, and the picker was refused on that basis. It was never tested. Measured on 2026-11-28
+  against a real `IFileOpenDialog` with `FOS_PICKFOLDERS` in another process (`poc/dialoghost-gui.exe cid-folder`): replacing the
+  filename box text with a folder path and pressing OK moves the dialog to that folder, leaves it open, and empties the filename
+  box; pressing "Select Folder" afterwards returns exactly that folder (checked for `C:\Users` and `C:\Program Files (x86)`).
+  The old tree-style "Browse for Folder" (`SHBrowseForFolder`) is a different dialog and is still not recognised.
 - **Non-existent folder**: the dialog shows a modal error box that blocks the message; `SendMessageTimeout` returns after 1 s. Product must check the path exists (and is accessible) *before* navigating.
 - **Elevated host**: UIPI blocks window messages from a lower-integrity process. Not yet tested; expected to fail safely (timeout / no-op). No bypass will be attempted.
 - **Filename box content** is overwritten by the path; any text the user typed there is lost.

@@ -43,6 +43,8 @@ static void Legacy(bool save) {
     save ? GetSaveFileNameW(&ofn) : GetOpenFileNameW(&ofn);
 }
 
+static wchar_t g_resultFile[MAX_PATH] = L"";  // optional 3rd command-line argument, see Cid()
+
 static void Cid(bool save, bool folder) {
     IFileDialog* dlg = nullptr;
     HRESULT hr = save ? CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&dlg))
@@ -55,13 +57,34 @@ static void Cid(bool save, bool folder) {
         dlg->SetFolder(si);
         si->Release();
     }
-    dlg->Show(nullptr);
+    const HRESULT shown = dlg->Show(nullptr);
+    // Test aid: when a result file is given as the 3rd argument, write what the dialog returned (the folder or file the
+    // user finally chose), or "CANCELLED". Lets a test prove what "Select Folder" / "Open" really selected.
+    if (g_resultFile[0]) {
+        std::wstring result = L"CANCELLED";
+        IShellItem* item = nullptr;
+        if (SUCCEEDED(shown) && SUCCEEDED(dlg->GetResult(&item))) {
+            PWSTR path = nullptr;
+            if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &path))) { result = path; CoTaskMemFree(path); }
+            item->Release();
+        }
+        HANDLE f = CreateFileW(g_resultFile, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (f != INVALID_HANDLE_VALUE) {
+            const int n = WideCharToMultiByte(CP_UTF8, 0, result.c_str(), -1, nullptr, 0, nullptr, nullptr);
+            std::string utf8(static_cast<size_t>(n), '\0');
+            WideCharToMultiByte(CP_UTF8, 0, result.c_str(), -1, utf8.data(), n, nullptr, nullptr);
+            DWORD written = 0;
+            WriteFile(f, utf8.c_str(), static_cast<DWORD>(utf8.size() - 1), &written, nullptr);
+            CloseHandle(f);
+        }
+    }
     dlg->Release();
 }
 
 int wmain(int argc, wchar_t** argv) {
     std::wstring mode = argc > 1 ? argv[1] : L"legacy-open";
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (argc > 3) wcsncpy_s(g_resultFile, argv[3], _TRUNCATE);
     if (argc > 2 && std::wstring(argv[2]) == L"raise") CloseHandle(CreateThread(nullptr, 0, Raiser, nullptr, 0, nullptr));
     if (mode == L"legacy-open") Legacy(false);
     else if (mode == L"legacy-save") Legacy(true);

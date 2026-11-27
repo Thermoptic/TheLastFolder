@@ -9,8 +9,8 @@ namespace DialogAdapter {
 // True for a class "#32770" window (generic dialog class, used by many windows).
 bool IsCandidateClass(HWND h);
 
-// True for a visible Open / Save As dialog of another process.
-// The folder picker is deliberately NOT supported (path + OK would select and close it).
+// True for a visible Open, Save As or Select Folder dialog of another process (the standard Windows file dialogs).
+// The older tree-style "Browse for Folder" dialog has a different structure and is not recognised.
 bool IsSupported(HWND dlg);
 
 // Current folder as shown in the dialog's address bar, or empty if it cannot be read.

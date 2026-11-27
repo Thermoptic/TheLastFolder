@@ -4,7 +4,7 @@
 
 namespace {
 
-// Observed filename-edit control ids (Windows 10 22H2): 1148 = Open, 1001 = Save As, 1152 = folder picker.
+// Observed filename-edit control ids (Windows 10 22H2): 1148 = Open, 1001 = Save As, 1152 = Select Folder picker.
 // Names and titles are localized and are never used for matching.
 constexpr int kIdOk = 1;
 constexpr int kIdEditOpen = 1148;
@@ -85,8 +85,7 @@ bool IsSupported(HWND dlg) {
     GetWindowThreadProcessId(dlg, &pid);
     if (pid == GetCurrentProcessId()) return false;
     if (!GetDlgItem(dlg, kIdOk)) return false;
-    int editId = 0;
-    return FindFileNameEdit(dlg, &editId) && editId != kIdEditFolderPicker;
+    return FindFileNameEdit(dlg, nullptr) != nullptr;  // Open, Save As and the Select Folder picker
 }
 
 // The breadcrumb toolbar under "Address Band Root" has the text "<localized label>: <path>".
@@ -101,12 +100,13 @@ std::wstring CurrentFolder(HWND dlg) {
 }
 
 bool Navigate(HWND dlg, const std::wstring& folder) {
-    int editId = 0;
-    HWND edit = FindFileNameEdit(dlg, &editId);
+    HWND edit = FindFileNameEdit(dlg, nullptr);
     HWND ok = GetDlgItem(dlg, kIdOk);
-    if (!edit || !ok || editId == kIdEditFolderPicker) return false;
+    if (!edit || !ok) return false;
     if (!ReplaceEditText(edit, folder)) return false;
-    // Same as pressing the default button: a folder path in the filename box navigates.
+    // Same as pressing the default button: a folder path in the filename box navigates. This holds in the Select Folder
+    // picker too (measured: the dialog moves to the folder and stays open; pressing "Select Folder" afterwards returns
+    // exactly that folder). An earlier version refused the picker on the untested assumption that OK would close it.
     DWORD_PTR r = 0;
     return SendMessageTimeoutW(dlg, WM_COMMAND, MAKEWPARAM(kIdOk, BN_CLICKED), reinterpret_cast<LPARAM>(ok),
                                SMTO_ABORTIFHUNG, kSendTimeoutMs, &r) != 0;

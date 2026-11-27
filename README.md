@@ -119,7 +119,8 @@ Expect rough edges, and treat anything not listed below as unverified rather tha
 Known limits:
 
 - Local drive-letter folders only. Network paths, virtual locations such as *This PC*, and archives are skipped.
-- Folder-selection dialogs ("Browse for folder") are not supported. Their *OK* means *pick this*, not *go there*.
+- The standard **Select Folder** dialog is supported, the same way as Open and Save As. The older tree-style "Browse for
+  Folder" dialog has a different structure and is not recognised.
 - Double Commander only works with the title-bar setting above, and its title can only show the active panel's folder.
 - Windows 11 is untested, and Explorer tabs are not handled.
 - Dialogs of programs running elevated are untested.
